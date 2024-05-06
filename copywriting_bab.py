@@ -10,15 +10,13 @@ def main():
     set_page_config()
     custom_css()
     hide_elements()
-    sidebar()
     title_and_description()
     input_section()
 
 def set_page_config():
     st.set_page_config(
-        page_title="Alwrity",
+        page_title="Alwrity copywriting",
         layout="wide",
-        page_icon="img/logo.png"
     )
 
 def custom_css():
@@ -59,39 +57,9 @@ def hide_elements():
     st.markdown(hide_streamlit_footer, unsafe_allow_html=True)
 
 
-def sidebar():
-    st.sidebar.markdown(
-            "**Other AI Apps by [Alwrity](https://alwrity.netlify.app)**"
-        )
-    st.sidebar.image("img/alwrity.jpeg", use_column_width=True)
-    st.sidebar.markdown("🧕 :red[Checkout Alwrity], complete **AI writer & Blogging solution**:[Alwrity](https://alwrity.netlify.app)")
-
-
-
 def title_and_description():
-    st.title("✍️ Alwrity - AI Generator for CopyWriting BAB Formula")
-    with st.expander("What is **Copywriting BAB formula** & **How to Use**? 📝❗"):
-        st.markdown('''
-            ### What's BAB copywriting Formula, How to use this AI generator 🗣️
-            ---
-            #### BAB Copywriting Formula
+    st.title("🧕 Alwrity - AI Generator for CopyWriting BAB Formula")
 
-            BAB stands for Before-After-Bridge. It's a copywriting formula that involves:
-
-            1. **Before**: Presenting the current undesirable situation or problem faced by the audience.
-            2. **After**: Describing the desired state or outcome the audience wants to achieve.
-            3. **Bridge**: Introducing your product or service as the solution that bridges the gap between the before and after states.
-
-            The BAB formula is effective in capturing attention, creating desire for change, and presenting your solution as the means to achieve it.
-
-            #### BAB Copywriting Formula: Simple Example
-
-            - **Before**: Are you tired of waking up tired every morning?
-            - **After**: Imagine feeling energized and refreshed, ready to tackle the day with enthusiasm.
-            - **Bridge**: Our energy-boosting supplement provides the vitality you need to start each day feeling invigorated and full of life.
-
-            ---
-        ''')
 
 def input_section():
     with st.expander("**PRO-TIP** - Campaign's Key features and benefits to build **Interest & Desire**", expanded=True):
@@ -123,8 +91,6 @@ def input_section():
             else:
                 st.error("Before, After, and Bridge fields are required!")
 
-    page_bottom()
-
 
 @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
 def generate_bab_copy(brand_name, description, before, after, bridge):
@@ -136,63 +102,68 @@ def generate_bab_copy(brand_name, description, before, after, bridge):
         - Bridge: {bridge}
         Do not provide explanations in your response, provide the final marketing copy.
     """
-    return openai_chatgpt(prompt)
-
-
-def page_bottom():
-    """ """
-    data_oracle = import_json(r"lottie_files/brain_robot.json")
-    st_lottie(data_oracle, width=600, key="oracle")
-
-    st.markdown('''
-    Copywrite using BAB formula - powered by AI (OpenAI, Gemini Pro).
-
-    Implemented by [Alwrity](https://alwrity.netlify.app).
-
-    Learn more about [Google's Stance on AI generated content](https://alwrity.netlify.app/post/googles-guidelines-on-using-ai-generated-content-everything-you-need-to-know).
-    ''')
-
-    st.markdown("""
-    ### Problem:
-    Are you struggling to create compelling marketing campaigns that grab your audience's attention and drive them to take action?
-
-    ### Agitate:
-    Imagine spending hours crafting a message, only to find it doesn't resonate with your audience or compel them to engage with your brand. Your campaigns may lack the attention-grabbing headlines, compelling details, and persuasive calls-to-action needed to stand out in today's crowded digital landscape.
-
-    ### Bridge:
-    Introducing Alwrity - Your AI Generator for Copywriting BAB Formula.
-    """)
+    try:
+        response = generate_text_with_exception_handling(prompt)
+        return response
+    except Exception as err:
+        st.error(f"Exit: Failed to get response from LLM: {err}")
+        exit(1)
 
 
 
 @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
-def openai_chatgpt(prompt, model="gpt-3.5-turbo-0125", max_tokens=500, top_p=0.9, n=1):
+def generate_text_with_exception_handling(prompt):
+    """
+    Generates text using the Gemini model with exception handling.
+
+    Args:
+        api_key (str): Your Google Generative AI API key.
+        prompt (str): The prompt for text generation.
+
+    Returns:
+        str: The generated text.
+    """
+
     try:
-        client = openai.OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
-        response = client.chat.completions.create(
-            model=model,
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=max_tokens,
-            n=n,
-            top_p=top_p
-        )
-        return response.choices[0].message.content
-    except openai.APIError as e:
-        st.error(f"OpenAI API Error: {e}")
-    except openai.APIConnectionError as e:
-        st.error(f"Failed to connect to OpenAI API: {e}")
-    except openai.RateLimitError as e:
-        st.error(f"Rate limit exceeded on OpenAI API request: {e}")
-    except Exception as err:
-        st.error(f"An error occurred: {err}")
+        genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
 
+        generation_config = {
+            "temperature": 1,
+            "top_p": 0.95,
+            "top_k": 0,
+            "max_output_tokens": 8192,
+        }
 
-# Function to import JSON data
-def import_json(path):
-    with open(path, "r", encoding="utf8", errors="ignore") as file:
-        url = json.load(file)
-        return url
+        safety_settings = [
+            {
+                "category": "HARM_CATEGORY_HARASSMENT",
+                "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+            },
+            {
+                "category": "HARM_CATEGORY_HATE_SPEECH",
+                "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+            },
+            {
+                "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+            },
+            {
+                "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+                "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+            },
+        ]
 
+        model = genai.GenerativeModel(model_name="gemini-1.5-pro-latest",
+                                      generation_config=generation_config,
+                                      safety_settings=safety_settings)
+
+        convo = model.start_chat(history=[])
+        convo.send_message(prompt)
+        return convo.last.text
+
+    except Exception as e:
+        st.exception(f"An unexpected error occurred: {e}")
+        return None
 
 
 if __name__ == "__main__":
