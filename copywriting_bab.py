@@ -64,7 +64,7 @@ def input_section():
         with col1:
             brand_name = st.text_input('**Enter Brand/Company Name**')
         with col2:
-            description = st.text_input(f'**Describe What {brand_name} Does ?** (In 5-6 words)')
+            description = st.text_input(f'**Describe What Your Company Does ?** (In 5-6 words)')
 
         before = st.text_input('**What\'s the Problem?**', 
                        help="For example: 'People can't find a good taxi.'",
@@ -83,6 +83,7 @@ def input_section():
                     if bab_copy:
                         st.subheader('**👩🔬👩🔬 Your BAB marketing Copy**')
                         st.markdown(bab_copy)
+                        st.write("\n\n\n")
                     else:
                         st.error("💥 **Failed to generate BAB copy. Please try again!**")
             else:
