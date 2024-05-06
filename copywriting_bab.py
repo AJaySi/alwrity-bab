@@ -1,3 +1,4 @@
+import os 
 import streamlit as st
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 import google.generativeai as genai
